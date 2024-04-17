@@ -20,7 +20,7 @@ const Client = new Discord.Client({
 logText("Discord client initialized");
 
 // Initialisation of XMLHttpRequest
-const http = new XMLHttpRequest();
+let http = new XMLHttpRequest();
 const method = 'POST';
 const url = process.env.WEBHOOK_URL;
 
@@ -31,7 +31,6 @@ const ChannelID_Rules = process.env.RULES_CHANNEL_ID;
 const ChannelID_Controle = process.env.CONTROLE_CHANNEL_ID;
 
 // Initialisation of variables for roles
-// [TODO] What is a GuildID ???
 const RoleID_membre = process.env.MEMBER_ROLE_ID;
 const RoleID_visiteur = process.env.VISITOR_ROLE_ID;
 const RoleID_controleur = process.env.CONTROLEUR_ROLE_ID;
@@ -40,7 +39,7 @@ const RoleID_controleur = process.env.CONTROLEUR_ROLE_ID;
 const GuildID = process.env.GUILD_ID;
 
 let guild = null;
-let memberID = 0;
+let memberID = null;
 
 const embed_welcome = new EmbedBuilder()
 .setTitle("Bienvenue sur le serveur des Jeunes IHEDN")
@@ -105,4 +104,350 @@ Client.on("ready", () => {
     logText("Webhook url : " + url);
     guild = Client.guilds.cache.get(GuildID);
     logText("Guild : " + guild);
+});
+
+Client.on("messageCreate", message => {
+    // Filtrage bot
+    if (message.author.bot) return;
+    logText("Bot reaction filtered out.");
+    // Channel de vérification
+    if (message.channel.id === ChannelID_Welcome) {
+        // Rôle visiteur uniquement
+        if (message.member.roles.cache.has(RoleID_visiteur)) {
+            // Contrôle si email correct
+            if (emailvalidator.validate(message.content)) {
+                message.react("🔍");
+                message.reply("Vérification de votre cotisation en cours...")
+                .then(msg => {
+                    setTimeout(() => msg.delete()
+                                    .then()
+                                    .catch(console.error)
+                                    , 5000)
+                })
+                .catch(console.error);
+                setTimeout(() => message.delete()
+                                .then()
+                                .catch(console.error)
+                                , 5000)
+                var data = {
+                    channel_id: message.channel.id,
+                    user_message_id: message.id,
+                    author_id: message.author.id,
+                    content: message.content.toLowerCase(),            
+                    request_type: "NEW"
+                };
+                var jsonString = JSON.stringify(data);
+
+                http.open(method, url);
+                http.setRequestHeader("Content-Type", "application/json");
+                http.send(jsonString);
+                http = new XMLHttpRequest();
+            } else {
+                message.react("❌");
+                message.reply("Merci de renseigner uniquement un email afin de procéder à la vérification.")
+                .then(msg => {
+                    setTimeout(() => msg.delete()
+                                    .then()
+                                    .catch(console.error)
+                                    , 10000)
+                })
+                .catch(console.error);
+                setTimeout(() => message.delete()
+                                .then()
+                                .catch(console.error)
+                                , 5000)
+            }
+        } else {
+            message.react("⛔");
+            message.reply("Bonjour, vous n'êtes pas autorisé à utiliser ce service.")
+            .then(msg => {
+               setTimeout(() => msg.delete()
+                                .then()
+                                .catch(console.error)
+                                , 5000)
+            })
+            .catch(console.error);
+            setTimeout(() => message.delete()
+                            .then()
+                            .catch(console.error)
+                            , 5000)
+        }
+    // Channel contrôle
+    } else if (message.channel.id === ChannelID_Controle) {
+        // Rôle contrôleur uniquement
+        if (message.member.roles.cache.has(RoleID_controleur)) {
+            // Contrôle si email correct
+            if (emailvalidator.validate(message.content)) {
+                message.react("✅");
+                message.reply("Bonjour, je vais procéder à la vérification de la cotisation de cette personne.")
+                .then(msg => {
+                    setTimeout(() => msg.delete()
+                                    .then()
+                                    .catch(console.error)
+                                    , 10000)
+                })
+                .catch(console.error);
+                setTimeout(() => message.delete()
+                                .then()
+                                .catch(console.error)
+                                , 5000)
+                var data = {
+                    channel_id: message.channel.id,
+                    user_message_id: message.id,
+                    author_id: message.author.id,
+                    content: message.content.toLowerCase(),            
+                    request_type: "CHECK"
+                };
+                var jsonString = JSON.stringify(data);
+
+                http.open(method, url);
+                http.setRequestHeader("Content-Type", "application/json");
+                http.send(jsonString);
+                http = new XMLHttpRequest();
+            } else {
+                // Recherche de l'utilisateur avec son ID
+                guild.members.fetch(message.content).then((user) => {
+				    memberID = user;
+				    message.react("✅");
+                    message.reply("Bonjour, je vais procéder à la recherche d'informations sur cette personne.")
+                    .then(msg => {
+                        setTimeout(() => msg.delete()
+                                        .then()
+                                        .catch(console.error)
+                                        , 10000)
+                    })
+                    .catch(console.error);
+                    setTimeout(() => message.delete()
+                                    .then()
+                                    .catch(console.error)
+                                    , 5000)
+                    var data = {
+                        channel_id: message.channel.id,
+                        user_message_id: message.id,
+                        author_id: message.author.id,
+                        content: message.content,            
+                        request_type: "CHECK_ID"
+                    };
+                    var jsonString = JSON.stringify(data);
+
+                    http.open(method, url);
+                    http.setRequestHeader("Content-Type", "application/json");
+                    http.send(jsonString);
+                    http = new XMLHttpRequest();
+                }).catch(error => {
+                    // Si l'ID n'existe pas sur ce serveur
+                    memberID = 0;
+                    message.react("❌");
+                    message.reply("Bonjour, merci de renseigner **un email** à vérifier ou **l'ID d'un membre** du serveur uniquement. Vous pouvez aussi demander de l"+"'"+"aide auprès des modérateurs, via le canal <#949665174883803196>")
+                    .then(msg => {
+                        setTimeout(() => msg.delete()
+                                        .then()
+                                        .catch(console.error)
+                                        , 10000)
+                    })
+                    .catch(console.error);
+                    setTimeout(() => message.delete()
+                                    .then()
+                                    .catch(console.error)
+                                    , 5000)
+                })
+            }
+        } else {
+            message.react("⛔");
+            message.reply("Bonjour, vous n'êtes pas autorisé à utiliser ce service.")
+            .then(msg => {
+                setTimeout(() => msg.delete()
+                                .then()
+                                .catch(console.error)
+                                , 5000)
+            })
+            .catch(console.error);
+            setTimeout(() => message.delete()
+                            .then()
+                            .catch(console.error)
+                            , 5000)
+        }
+    // Channel rôles
+    } else if (message.channel.id === ChannelID_Roles) {
+        // Rôle contrôleur uniquement
+        if (message.member.roles.cache.has(RoleID_controleur)) {
+            // Recherche de l'utilisateur avec son ID
+            guild.members.fetch(message.content).then((user) => {
+                memberID = user;
+                // Utilisateur membre uniquement
+                if (memberID.roles.cache.has(RoleID_membre)) {
+                    message.react("✅");
+                    // Recherche du (premier) rôle de responsabilité de l'auteur (contenants l'emoji 👑)
+                    var author = guild.members.cache.get(message.author.id);
+                    var respo_role = author.roles.cache.find(respo_role => respo_role.name.includes("👑"));
+                    if (respo_role === undefined) {
+                        message.reply('L'+"'"+'ID est correct, malheureusement, vous n'+"'"+'êtes pas responsable d'+"'"+'un groupe (👑) pour donner des droits. Vous pouvez demander de l'+"'"+'aide auprès des modérateurs, via le canal <#949665174883803196>')
+                            .then(msg => {
+                                memberID = 0;
+                                setTimeout(() => msg.delete()
+                                                .then()
+                                                .catch(console.error)
+                                                , 10000)
+                            })
+                            .catch(console.error);
+                            setTimeout(() => message.delete()
+                                            .then()
+                                            .catch(console.error)
+                                            , 5000)
+                    } else {
+                        // Récupérer l'emoji du rôle en évitant une erreur de lecture
+                        var emoji = String.fromCodePoint(respo_role.name.codePointAt(0));
+                        // Trouver le rôle enfant lié à cet emoji
+                        var member_role = guild.roles.cache.find(member_role => member_role.name.startsWith(emoji) && !member_role.name.includes("👑"));
+                        if (member_role === undefined) {
+                            memberID = 0;
+                            message.reply("Il n'existe pas de rôle enfant associé à la responsabilité " + '"' + respo_role.name + '".  Vous pouvez demander de l'+"'"+'aide auprès des modérateurs, via le canal <#949665174883803196>')
+                            .then(msg => {
+                                setTimeout(() => msg.delete()
+                                                .then()
+                                                .catch(console.error)
+                                                , 10000)
+                            })
+                            .catch(console.error);
+                            setTimeout(() => message.delete()
+                                           .then()
+                                           .catch(console.error)
+                                            , 5000)
+                        } else {
+                            // Créer le menu de sélection
+                            var row = new Discord.MessageActionRow()
+                                .addComponents(
+                                new Discord.MessageSelectMenu()
+                                    .setCustomId('select')
+                                    .setPlaceholder('Liste des rôles')
+                                    .addOptions(
+                                        {
+                                            label: member_role.name,
+                                            value: member_role.id,
+                                        },
+                                        {
+                                            label: respo_role.name,
+                                            value: respo_role.id,
+                                        },
+                                    ),
+                                );
+                                message.reply({content: ('Sélectionner le rôle que vous souhaitez associer à **<@' + memberID + '>** dans le menu ci-dessous :'), components: [row]})
+                                .then(msg => {
+                                    setTimeout(() => msg.delete()
+                                                    .then()
+                                                    .catch(console.error)
+                                                    , 10000)
+                                })
+                                .catch(console.error);
+                                setTimeout(() => message.delete()
+                                                .then()
+                                                .catch(console.error)
+                                                , 10000)
+                        }
+                    }
+                } else {
+                    message.react("⛔");
+                    message.reply("L'utilisateur n'a pas terminé son intégration au serveur. Ce service est réservé au role <@&"+RoleID_membre+">")
+                    .then(msg => {
+                        setTimeout(() => msg.delete()
+                                        .then()
+                                        .catch(console.error)
+                                        , 5000)
+                    })
+                    .catch(console.error);
+                    setTimeout(() => message.delete()
+                                    .then()
+                                    .catch(console.error)
+                                    , 5000)
+                }
+            }).catch(error => {
+                // Si l'ID n'existe pas sur ce serveur
+                memberID = 0;
+                message.react("❌");
+                message.reply("Bonjour, merci de renseigner uniquement **l'ID d'un membre** du serveur (voir tuto ci-dessus). Vous pouvez aussi demander de l"+"'"+"aide auprès des modérateurs, via le canal <#949665174883803196>")
+                .then(msg => {
+                    setTimeout(() => msg.delete()
+                                    .then()
+                                    .catch(console.error)
+                                    , 10000)
+                })
+                .catch(console.error);
+                setTimeout(() => message.delete()
+                                .then()
+                                .catch(console.error)
+                                , 5000)
+            })
+        } else {
+            message.react("⛔");
+            message.reply("Bonjour, vous n'êtes pas autorisé à utiliser ce service.")
+            .then(msg => {
+                setTimeout(() => msg.delete()
+                                .then()
+                                .catch(console.error)
+                                , 5000)
+            })
+            .catch(console.error);
+            setTimeout(() => message.delete()
+                            .then()
+                            .catch(console.error)
+                            , 5000)
+        }
+    }
+});
+
+Client.on("messageReactionAdd", (reaction, user) => {   
+    // Filter out bot reactions
+    if (user.bot) return;
+    logText("Bot reaction filtered out.");
+
+    // Check if it's the rules channel
+    if (reaction.message.channel.id === ChannelID_Rules) {
+        logText("Reaction received in the rules channel.");
+
+        // Check if the emoji is the checkmark
+        if (reaction.emoji.name === "✅") {
+            var data = {
+                channel_id: ChannelID_Rules,
+                user_message_id: " ",
+                author_id: user.id,
+                content: " ",            
+                request_type: "RULES"
+            };
+            var jsonString = JSON.stringify(data);
+                
+            http.open(method, url);
+            http.setRequestHeader("Content-Type", "application/json");
+            http.send(jsonString);
+            logText("Sent rules acceptance data for user " + user.id);
+            http = new XMLHttpRequest();
+        }
+    }
+});
+
+Client.on("interactionCreate", interaction => {
+    // Check if it's the roles channel
+    if (interaction.channel.id === ChannelID_Roles) {
+        logText("Interaction received in the roles channel.");
+
+        if(interaction.isSelectMenu()){
+            if(interaction.customId ==="select"){
+                try {
+                    var role = interaction.guild.roles.cache.find(role => role.id === interaction.values[0]);
+                    interaction.member.roles.add(role);
+                    interaction.update({content: ('✅ Le rôle ' + role.name + ' a été ajouté !')});
+                    logText("Role " + role.name + " added to user " + interaction.member.id);
+                } catch (error) {
+                    logText("Error adding role: " + error.message);
+                }
+            }
+        }
+    }
+});
+
+Client.on("error", (e) => {
+    logText("Discord client error: " + e.message);
+});
+
+Client.on("disconnect", () => {
+    logText("Bot disconnected.");
 });
