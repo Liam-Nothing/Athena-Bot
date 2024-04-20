@@ -110,7 +110,7 @@ Client.on("ready", () => {
 Client.on("messageCreate", message => {
     // Filtrage bot
     if (message.author.bot) return;
-    logText("Bot message received.");
+    logText("Bot message received from " + message.author.id);
 
     // Channel de vérification
     if (message.channel.id === ChannelID_Welcome) {
@@ -412,7 +412,7 @@ Client.on("messageCreate", message => {
 Client.on("messageReactionAdd", (reaction, user) => {
     // Filter out bot reactions
     if (user.bot) return;
-    logText("Bot reaction received.");
+    logText("Bot reaction received from " + user.id);
 
     // Check if it's the rules channel
     if (reaction.message.channel.id === ChannelID_Rules) {
@@ -440,7 +440,7 @@ Client.on("messageReactionAdd", (reaction, user) => {
 
 Client.on("interactionCreate", interaction => {
     // Check if it's the roles channel
-    logText("Bot interaction received.");
+    logText("Bot interaction received from " + interaction.user.id);
 
     if (interaction.channel.id === ChannelID_Roles) {
 
