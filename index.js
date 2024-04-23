@@ -5,7 +5,8 @@ const { EmbedBuilder } = require('discord.js');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const emailvalidator = require("email-validator");
 const { exit } = require("process");
-// require("./splash_screen.js");
+const fs = require('fs');
+require("./splash_screen.js");
 logText("Starting bot...");
 
 // Initialisation of Discord client
@@ -93,19 +94,51 @@ Client.login(process.env.API_KEY_BOT)
 
 Client.on("ready", () => {
     logText("Bot online !");
-    // Client.user.setActivity('un podcast Fort Éclair', { type: 'LISTENING' });
-    Client.channels.cache.get(ChannelID_Welcome).send({ embeds: [embed_welcome] });
-    logText("Welcome published");
-    Client.channels.cache.get(ChannelID_Rules).send({ embeds: [embed_rules] });
-    logText("Rules published");
-    Client.channels.cache.get(ChannelID_Roles).send({ embeds: [embed_roles] });
-    logText("Roles published");
-    Client.channels.cache.get(ChannelID_Controle).send({ embeds: [embed_controle] });
-    logText("Controle published");
-    logText("Webhook url : " + url);
-    guild = Client.guilds.cache.get(GuildID);
-    logText("Guild : " + guild);
+
+    const dataPath = './savedMessageIds.json';
+    if (fs.existsSync(dataPath)) {
+        const savedData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+        savedData.forEach(data => {
+            const channel = Client.channels.cache.get(data.channelId);
+            if (channel) {
+                channel.messages.fetch(data.messageId)
+                    .then(message => {
+                        message.delete();
+                        logText(`Message deleted successfully: ID ${message.id} in channel: ${channel.id}`);
+                    })
+                    .catch(err => logText(`Failed to delete message: ${err.message}`));
+            }
+        });
+        fs.writeFileSync(dataPath, '[]');
+    }
+
+    const messagesToSave = [];
+
+    Client.channels.cache.get(ChannelID_Welcome).send({ embeds: [embed_welcome] }).then(message => {
+        logText(`Welcome message published`);
+        messagesToSave.push({ messageId: message.id, channelId: message.channel.id });
+    }).catch(err => logText(`Failed to send welcome message: ${err.message}`));
+
+    Client.channels.cache.get(ChannelID_Rules).send({ embeds: [embed_rules] }).then(message => {
+        logText(`Rules message published`);
+        messagesToSave.push({ messageId: message.id, channelId: message.channel.id });
+    }).catch(err => logText(`Failed to send rules message: ${err.message}`));
+
+    Client.channels.cache.get(ChannelID_Roles).send({ embeds: [embed_roles] }).then(message => {
+        logText(`Roles message published`);
+        messagesToSave.push({ messageId: message.id, channelId: message.channel.id });
+    }).catch(err => logText(`Failed to send roles message: ${err.message}`));
+
+    Client.channels.cache.get(ChannelID_Controle).send({ embeds: [embed_controle] }).then(message => {
+        logText(`Controle message published`);
+        messagesToSave.push({ messageId: message.id, channelId: message.channel.id });
+    }).catch(err => logText(`Failed to send controle message: ${err.message}`));
+
+    setTimeout(() => {
+        fs.writeFileSync(dataPath, JSON.stringify(messagesToSave, null, 4));
+    }, 5000);
 });
+
 
 Client.on("messageCreate", message => {
     // Filtrage bot
