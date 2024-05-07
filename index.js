@@ -6,7 +6,7 @@ const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const emailvalidator = require("email-validator");
 const { exit } = require("process");
 const fs = require('fs');
-require("./splash_screen.js");
+//require("./splash_screen.js");
 logText("Starting bot...");
 
 // Initialisation of Discord client
