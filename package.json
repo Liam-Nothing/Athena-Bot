@@ -4,5 +4,8 @@
     "dotenv": "^16.4.5",
     "email-validator": "^2.0.4",
     "xmlhttprequest": "^1.8.0"
+  },
+  "scripts": {
+      "start": "node index.js"
   }
 }
