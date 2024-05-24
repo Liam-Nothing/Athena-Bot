@@ -81,14 +81,16 @@ const embed_roles = new EmbedBuilder()
 .setImage("https://media.giphy.com/media/WEYLWp4RrzTAiOFt7V/giphy.gif")
 .setFooter({ text: "Les accès plus élevés (Cadre, Modérateur ...) se demandent auprès des modérateurs, via le canal ❔・support-discord"});
 
-Client.login(process.env.API_KEY_BOT)
-    .then(() => {
-        logText("Connected to Discord successfully!");
-    })
-    .catch(err => {
-        logText(`Error connecting to Discord: ${err.message}`);
-        exit(1);
-    });
+// Client.login(process.env.API_KEY_BOT)
+//     .then(() => {
+//         logText("Connected to Discord successfully!");
+//     })
+//     .catch(err => {
+//         logText(`Error connecting to Discord: ${err.message}`);
+//         exit(1);
+//     });
+
+loginBot();
 
 Client.on("ready", () => {
     logText("Bot online !");
@@ -451,3 +453,33 @@ Client.on("error", (e) => {
 Client.on("disconnect", () => {
     logText("Bot disconnected.");
 });
+
+// const REFRESH_INTERVAL = 24 * 60 * 60 * 1000;
+const REFRESH_INTERVAL = 10 * 1000; // 10 seconds in milliseconds
+
+function loginBot() {
+    const token = process.env.API_KEY_BOT;
+    const tokenStart = token.slice(0, 5);
+    const tokenEnd = token.slice(-5);
+    logText(`Logging in with token start: ${tokenStart}... end: ${tokenEnd}`);
+    Client.login(token)
+        .then(() => {
+            logText(`Bot connected successfully with token start: ${tokenStart}... end: ${tokenEnd}`);
+        })
+        .catch(err => {
+            logText(`Error connecting to Discord with token start: ${tokenStart}... end: ${tokenEnd} - ${err.message}`);
+            exit(1);
+        });
+}
+
+setInterval(() => {
+    logText("Refreshing bot token...");
+    Client.destroy()
+        .then(() => {
+            logText("Bot disconnected successfully.");
+            loginBot();
+        })
+        .catch(err => {
+            logText(`Error disconnecting bot: ${err.message}`);
+        });
+}, REFRESH_INTERVAL);
