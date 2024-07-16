@@ -1,81 +1,126 @@
-# Discord Bot for Jeunes IHEDN Server
+# Athena BOT
 
-This Discord bot is designed to facilitate management and interaction within the Jeunes IHEDN Discord server. It handles various tasks such as role management, membership verification, and automated messaging within designated channels.
-
-## Features
-
-- **Email Validation**: Automatically validates emails in the welcome channel to verify new members.
-- **Role Management**: Allows administrators to assign roles based on user interaction and verifications.
-- **Automated Responses**: Provides automated messages in specific channels for guidance and interaction.
-- **Custom Logging**: Utilizes a custom logging function to keep track of activities and errors.
-
-## Prerequisites
-
-Before you begin, ensure you have met the following requirements:
-- Node.js (v16.x or higher recommended)
-- npm (Node Package Manager)
-- A Discord Bot Token ([Discord Developer Portal](https://discord.com/developers/applications))
-- Configured `.env` file with necessary environment variables
+Athena BOT is a Discord bot designed to manage the Discord server of the "Jeune IHEDN" association. This bot automates various tasks to help maintain the server's organization and engagement.
 
 ## Installation
 
-Follow these steps to get your development environment running:
+1. Install the dependencies:
 
-1. **Clone the repository**
+    ```
+    npm install
+    ```
 
+## Configuration
+
+Create a `.env` file in the root directory of the project and add the following variables:
 
 ```
-git clone https://github.com/your-repository/your-project-name.git
-cd your-project-name
+API_KEY_BOT=""
+WEBHOOK_URL=""
+WELCOME_CHANNEL_ID=""
+ROLES_CHANNEL_ID=""
+RULES_CHANNEL_ID=""
+CONTROLE_CHANNEL_ID=""
+MEMBER_ROLE_ID=""
+VISITOR_ROLE_ID=""
+CONTROLEUR_ROLE_ID=""
+GUILD_ID=""
 ```
 
-2. **Install Dependencies**
-
-Run the following command to install the project dependencies: `npm install`
-
-3. **Set Up Environment Variables**
-
-Create a .env file in the root directory of your project. Add the following environment variables according to your setup:
-```
-API_KEY_BOT=your_discord_bot_token
-WEBHOOK_URL=your_webhook_url_for_integration
-WELCOME_CHANNEL_ID=your_welcome_channel_id
-ROLES_CHANNEL_ID=your_roles_channel_id
-RULES_CHANNEL_ID=your_rules_channel_id
-CONTROLE_CHANNEL_ID=your_controle_channel_id
-MEMBER_ROLE_ID=your_member_role_id
-VISITOR_ROLE_ID=your_visitor_role_id
-CONTROLEUR_ROLE_ID=your_controleur_role_id
-GUILD_ID=your_guild_id
-```
-4. **Run the Bot**
-
-Use the following command to start the bot: `node index.js`
+An example `.env` file is provided as `.env-example`.
 
 ## Usage
 
-Once the bot is running, it will listen to the configured channels for specific triggers such as message creation and reactions. The bot will automatically handle all operations based on its configuration.
+Start the bot by running the following command:
 
-- **Welcome Messages**: Automatically sends an embedded welcome message in the designated welcome channel.
-- **Email Verification**: Listens for messages in the welcome channel and validates them as email addresses.
-- **Role Assignment**: In the roles channel, the bot allows for role assignments through interactions with messages.
+```
+node index.js
+```
 
-## Contributing
+The bot will start and connect to your Discord server using the provided API key.
 
-Contributions are what make the open-source community such a fantastic place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+## Usage on O2Switch
 
-- Fork the Project
-- Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-- Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-- Push to the Branch (`git push origin feature/AmazingFeature`)
-- Open a Pull Request
+! DO NOT CONNECT TO THE WEB SSH !
 
-## License
+### Prerequisites
 
-Distributed under the MIT License. See LICENSE for more information.
+- Access to o2switch cPanel
+- A Discord bot ready for deployment
+- Basic knowledge of SSH and Node.js
 
-## Contact
+### Step 1: Initial Configuration
 
-Your Name – [@your_twitter](https://twitter.com/your_twitter) – email@example.com
+1. **Log in to cPanel**: Access your cPanel account provided by o2switch.
+2. **Open Setup Node.js App**: Locate and open the "Setup Node.js App" tool.
 
-Project Link: [https://github.com/your-repository/your-project-name](https://github.com/your-repository/your-project-name)
+### Step 2: Create a New Node.js Application
+
+1. **Create the Application**:
+    - Click on `Create Application`.
+    - Select the Node.js version (e.g., `14`, `16`, or `18`).
+    - Set the application mode (`Development` or `Production`).
+    - **Application Root**: Specify the path to your project directory (e.g., `/home/username/discord-bot`).
+    - **Application URL**: Define the URL for your application.
+    - **Application Startup File**: Set this to `index.js`.
+
+2. **Install Dependencies**:
+    - Open the terminal in cPanel or connect via SSH.
+    - Navigate to your project directory:
+      ```
+      cd /home/username/discord-bot
+      ```
+    - Install the necessary dependencies:
+      ```
+      npm install
+      ```
+
+### Step 3: Ensure Automatic Restart with pm2
+
+To keep your bot running and automatically restart it if it crashes, use `pm2`.
+
+1. **Install pm2**:
+    - In the terminal, install pm2 globally:
+      ```
+      npm install -g pm2
+      ```
+
+2. **Start Your Bot with pm2**:
+    - Start your bot using pm2:
+      ```
+      pm2 start index.js --name "discord-bot"
+      ```
+    - Save the pm2 process list and setup pm2 to start on boot:
+      ```
+      pm2 save
+      pm2 startup
+      ```
+
+### Step 4: Manage and Monitor Your Bot
+
+- **View the status of your application**:
+    ```
+    pm2 list
+    ```
+- **Restart your application**:
+    ```
+    pm2 restart discord-bot
+    ```
+- **Stop your application**:
+    ```
+    pm2 stop discord-bot
+    ```
+
+### Step 5: Updating and Maintenance
+
+When you need to update your bot or its dependencies:
+
+1. **Stop the application**:
+  ```
+  pm2 stop discord-bot
+  ```
+2. **Make necessary updates** (e.g., `git pull` or `npm update`).
+3. **Restart the application**:
+  ```
+  pm2 restart discord-bot
+  ```
