@@ -7,6 +7,10 @@
     "xmlhttprequest": "^1.8.0"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "pm2 describe 'discord-bot' > /dev/null && pm2 start 'discord-bot' || echo 'discord-bot not found'",
+    "init": "npm i && npm install -g pm2 && pm2 start index.js --name 'discord-bot'",
+    "stop": "pm2 stop 'discord-bot'",
+    "delete": "pm2 delete 'discord-bot'",
+    "listing": "pm2 list"
   }
 }
