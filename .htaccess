@@ -1,0 +1,6 @@
+Options -Indexes
+
+<FilesMatch "\.(js)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
