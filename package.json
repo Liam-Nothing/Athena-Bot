@@ -3,9 +3,10 @@
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
     "email-validator": "^2.0.4",
+    "express": "^4.19.2",
     "xmlhttprequest": "^1.8.0"
   },
   "scripts": {
-      "start": "node index.js"
+    "start": "node index.js"
   }
 }

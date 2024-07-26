@@ -9,6 +9,10 @@ const fs = require('fs');
 require("./splash_screen.js");
 logText("Starting bot...");
 
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
+
 // Initialisation of Discord client
 const Client = new Discord.Client({
     intents: [
@@ -523,4 +527,17 @@ Client.on("error", (e) => {
 
 Client.on("disconnect", () => {
     logText("Bot disconnected.");
+});
+
+// Express server for status endpoint
+app.get('/status', (req, res) => {
+    if (Client.isReady()) {
+        res.status(200).send('Bot is running');
+    } else {
+        res.status(500).send('Bot is not running');
+    }
+});
+
+app.listen(port, () => {
+    logText(`Status server running at http://localhost:${port}`);
 });
