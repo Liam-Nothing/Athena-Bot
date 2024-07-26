@@ -9,9 +9,20 @@ const fs = require('fs');
 require("./splash_screen.js");
 logText("Starting bot...");
 
-const express = require('express');
-const app = express();
-const port = process.env.PORT || 3000;
+// Initialisation du serveur HTTP pour indiquer l'état du bot
+const http = require('http');
+
+var server = http.createServer(function (req, res) {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    var message = 'Bot is running\n';
+    var version = 'NodeJS ' + process.version + '\n';
+    var response = [message, version].join('\n');
+    res.end(response);
+});
+
+server.listen(3000, () => {
+    logText("HTTP server running at http://localhost:3000/");
+});
 
 // Initialisation of Discord client
 const Client = new Discord.Client({
@@ -26,7 +37,7 @@ const Client = new Discord.Client({
 logText("Discord client initialized");
 
 // Initialisation of XMLHttpRequest
-let http = new XMLHttpRequest();
+let httpReq = new XMLHttpRequest();
 const method = 'POST';
 const url = process.env.WEBHOOK_URL;
 
@@ -527,17 +538,4 @@ Client.on("error", (e) => {
 
 Client.on("disconnect", () => {
     logText("Bot disconnected.");
-});
-
-// Express server for status endpoint
-app.get('/status', (req, res) => {
-    if (Client.isReady()) {
-        res.status(200).send('Bot is running');
-    } else {
-        res.status(500).send('Bot is not running');
-    }
-});
-
-app.listen(port, () => {
-    logText(`Status server running at http://localhost:${port}`);
 });
