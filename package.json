@@ -1,4 +1,7 @@
 {
+  "name": "athena-bot",
+  "version": "1.0.0",
+  "description": "Edited by NothingElse.fr",
   "dependencies": {
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
@@ -7,8 +10,8 @@
     "xmlhttprequest": "^1.8.0"
   },
   "scripts": {
-    "start": "pm2 describe 'discord-bot' > /dev/null && pm2 start 'discord-bot' || echo 'discord-bot not found'",
-    "init": "npm i && npm install -g pm2 && git pull && pm2 start index.js --name 'discord-bot'",
+    "start-after-stopped": "pm2 describe 'discord-bot' > /dev/null && pm2 start 'discord-bot' || echo 'discord-bot not found'",
+    "start": "npm i && npm install -g pm2 && git pull && pm2 start index.js --name 'discord-bot'",
     "stop": "pm2 stop 'discord-bot'",
     "delete": "pm2 delete 'discord-bot'",
     "listing": "pm2 list"
