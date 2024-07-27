@@ -9,19 +9,6 @@ const fs = require('fs');
 require("./splash_screen.js");
 logText("Starting bot...");
 
-// Initialisation du serveur HTTP pour indiquer l'état du bot
-const http = require('http');
-
-var server = http.createServer(function (req, res) {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    var message = 'Bot is running\n';
-    res.end(message);
-});
-
-server.listen(3000, () => {
-    logText("HTTP server running at http://localhost:3000/");
-});
-
 // Initialisation of Discord client
 const Client = new Discord.Client({
     intents: [
@@ -35,7 +22,7 @@ const Client = new Discord.Client({
 logText("Discord client initialized");
 
 // Initialisation of XMLHttpRequest
-let httpReq = new XMLHttpRequest();
+let http = new XMLHttpRequest();
 const method = 'POST';
 const url = process.env.WEBHOOK_URL;
 
