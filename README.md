@@ -58,69 +58,29 @@ The bot will start and connect to your Discord server using the provided API key
 
 1. **Create the Application**:
     - Click on `Create Application`.
-    - Select the Node.js version (e.g., `14`, `16`, or `18`).
-    - Set the application mode (`Development` or `Production`).
-    - **Application Root**: Specify the path to your project directory (e.g., `/home/username/discord-bot`).
-    - **Application URL**: Define the URL for your application.
-    - **Application Startup File**: Set this to `index.js`.
+    - Select the Node.js version 19.
+    - Set the application mode (`Development`).
+    - **Application Root**: Specify the path to your project directory (e.g., `/home/username/discord-bot`)(where you git clone).
+    - **Application URL**: Define the URL for your application. (let empty)
+    - **Application Startup File**: Set this to `satus.js`.
 
 2. **Install Dependencies**:
-    - Open the terminal in cPanel or connect via SSH.
-    - Navigate to your project directory:
+    - Connect via SSH.
+    - Navigate to your project directory: (Enter to the virtual environment. To enter to virtual environment, run the command)
       ```
-      cd /home/username/discord-bot
+      source /home/XXXXX/nodevenv/public_html/XXXXX/XXXXX/bin/activate && cd /home/XXXXX/public_html/XXXXX
       ```
     - Install the necessary dependencies:
       ```
       npm install
       ```
 
-### Step 3: Ensure Automatic Restart with pm2
+### Step 3: Run the Bot
 
-To keep your bot running and automatically restart it if it crashes, use `pm2`.
-
-1. **Install pm2**:
-    - In the terminal, install pm2 globally:
-      ```
-      npm install -g pm2
-      ```
-
-2. **Start Your Bot with pm2**:
-    - Start your bot using pm2:
-      ```
-      pm2 start index.js --name "discord-bot"
-      ```
-    - Save the pm2 process list and setup pm2 to start on boot:
-      ```
-      pm2 save
-      pm2 startup
-      ```
-
-### Step 4: Manage and Monitor Your Bot
-
-- **View the status of your application**:
-    ```
-    pm2 list
-    ```
-- **Restart your application**:
-    ```
-    pm2 restart discord-bot
-    ```
-- **Stop your application**:
-    ```
-    pm2 stop discord-bot
-    ```
-
-### Step 5: Updating and Maintenance
-
-When you need to update your bot or its dependencies:
-
-1. **Stop the application**:
-  ```
-  pm2 stop discord-bot
-  ```
-2. **Make necessary updates** (e.g., `git pull` or `npm update`).
-3. **Restart the application**:
-  ```
-  pm2 restart discord-bot
-  ```
+1. Click on "Run app."
+2. Verify the status by visiting "URL/status."
+   - If the bot is not running, this page will indicate it.
+3. Click on "Run JS script."
+4. Select and launch the "start" script.
+5. Return to "URL/status" (wait a few seconds for processes like `npm i`, `git pull`, etc.).
+   - The bot should now be running.
