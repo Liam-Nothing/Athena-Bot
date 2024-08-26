@@ -15,6 +15,7 @@
     "start": "npm i && npm install -g pm2 && git pull && pm2 start index.js --name 'discord-bot'",
     "stop": "pm2 stop 'discord-bot'",
     "delete": "pm2 delete 'discord-bot'",
-    "listing": "pm2 list"
+    "listing": "pm2 list",
+    "pull": "npm i && npm install -g pm2 && git pull"
   }
 }

@@ -1,5 +1,6 @@
 const http = require('http');
 const pm2 = require('pm2');
+const { exec } = require('child_process');
 
 const port = process.env.PORT || 3000;
 const botName = 'discord-bot';
@@ -8,7 +9,7 @@ function checkBotStatus(callback) {
     pm2.connect((err) => {
         if (err) {
             console.error(err);
-            callback(false);
+            callback('error');
             return;
         }
 
@@ -16,29 +17,51 @@ function checkBotStatus(callback) {
             pm2.disconnect();
 
             if (err || !description || description.length === 0) {
-                callback(false);
+                callback('not found');
                 return;
             }
 
             const botProcess = description[0];
-            const isOnline = botProcess.pm2_env.status === 'online';
+            const status = botProcess.pm2_env.status;
 
-            callback(isOnline);
+            callback(status);
         });
     });
 }
 
+function executeCommand(command, res) {
+    exec(command, (err, stdout, stderr) => {
+        if (err) {
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end(`Error: ${stderr}`);
+            return;
+        }
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end(stdout);
+    });
+}
+
 const server = http.createServer((req, res) => {
-    if (req.method === 'GET' && req.url === '/status') {
-        checkBotStatus((isOnline) => {
-            if (isOnline) {
+    if (req.method === 'GET') {
+        if (req.url === '/status') {
+            checkBotStatus((status) => {
                 res.writeHead(200, { 'Content-Type': 'text/plain' });
-                res.end('Bot is running');
-            } else {
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end('Bot is not running');
-            }
-        });
+                res.end(`Bot status: ${status}`);
+            });
+        } else if (req.url === '/start') {
+            executeCommand('npm run start', res);
+        } else if (req.url === '/stop') {
+            executeCommand(`npm run stop`, res);
+        } else if (req.url === '/restart') {
+            executeCommand(`npm run stop && npm run start`, res);
+        } else if (req.url === '/delete') {
+            executeCommand(`npm run delete`, res);
+        } else if (req.url === '/list') {
+            executeCommand(`npm run listing`, res);
+        } else {
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('Not Found');
+        }
     } else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');
