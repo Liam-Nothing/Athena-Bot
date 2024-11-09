@@ -117,8 +117,10 @@ setInterval(() => {
 
 Client.on("ready", () => {
     logText("Bot online !");
-
+    
     const dataPath = './savedMessageIds.json';
+    const messagesToSave = [];
+
     if (fs.existsSync(dataPath)) {
         const savedData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
         savedData.forEach(data => {
@@ -126,43 +128,48 @@ Client.on("ready", () => {
             if (channel) {
                 channel.messages.fetch(data.messageId)
                     .then(message => {
-                        message.delete();
-                        logText(`Message deleted successfully: ID ${message.id} in channel: ${channel.id}`);
+                        // Si le message existe, on le garde dans messagesToSave pour écouter les réactions
+                        messagesToSave.push({ messageId: message.id, channelId: channel.id });
+                        logText(`Message already exists: ID ${message.id} in channel: ${channel.id}`);
                     })
-                    .catch(err => logText(`Failed to delete message: ${err.message}`));
+                    .catch(() => {
+                        // Si le message n'existe pas, on le renvoie
+                        const embed = getEmbedForChannel(data.channelId);
+                        if (embed) {
+                            channel.send({ embeds: [embed] }).then(newMessage => {
+                                logText(`Message republished: ID ${newMessage.id} in channel: ${channel.id}`);
+                                messagesToSave.push({ messageId: newMessage.id, channelId: channel.id });
+                            }).catch(err => logText(`Failed to republish message: ${err.message}`));
+                        }
+                    });
             }
         });
-        fs.writeFileSync(dataPath, '[]');
     }
 
-    const messagesToSave = [];
-
-    Client.channels.cache.get(ChannelID_Welcome).send({ embeds: [embed_welcome] }).then(message => {
-        logText(`Welcome message published`);
-        messagesToSave.push({ messageId: message.id, channelId: message.channel.id });
-    }).catch(err => logText(`Failed to send welcome message: ${err.message}`));
-
-    Client.channels.cache.get(ChannelID_Rules).send({ embeds: [embed_rules] }).then(message => {
-        logText(`Rules message published`);
-        messagesToSave.push({ messageId: message.id, channelId: message.channel.id });
-    }).catch(err => logText(`Failed to send rules message: ${err.message}`));
-
-    Client.channels.cache.get(ChannelID_Roles).send({ embeds: [embed_roles] }).then(message => {
-        logText(`Roles message published`);
-        messagesToSave.push({ messageId: message.id, channelId: message.channel.id });
-    }).catch(err => logText(`Failed to send roles message: ${err.message}`));
-
-    Client.channels.cache.get(ChannelID_Controle).send({ embeds: [embed_controle] }).then(message => {
-        logText(`Controle message published`);
-        messagesToSave.push({ messageId: message.id, channelId: message.channel.id });
-    }).catch(err => logText(`Failed to send controle message: ${err.message}`));
-
+    // Sauvegarder les nouveaux messages dans le fichier JSON après une petite attente
     setTimeout(() => {
         fs.writeFileSync(dataPath, JSON.stringify(messagesToSave, null, 4));
     }, 5000);
 
     guild = Client.guilds.cache.get(GuildID);
 });
+
+// Fonction pour obtenir l'embed en fonction du channel
+function getEmbedForChannel(channelId) {
+    switch (channelId) {
+        case ChannelID_Welcome:
+            return embed_welcome;
+        case ChannelID_Rules:
+            return embed_rules;
+        case ChannelID_Roles:
+            return embed_roles;
+        case ChannelID_Controle:
+            return embed_controle;
+        default:
+            return null;
+    }
+}
+
 
 
 Client.on("messageCreate", message => {
