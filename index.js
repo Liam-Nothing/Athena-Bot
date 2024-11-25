@@ -123,25 +123,58 @@ Client.on("ready", () => {
 
     if (fs.existsSync(dataPath)) {
         const savedData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+        logText(`Data file found with ${savedData.length} entries.`);
+        
         savedData.forEach(data => {
             const channel = Client.channels.cache.get(data.channelId);
             if (channel) {
+                logText(`Processing channel ID: ${data.channelId}`);
                 channel.messages.fetch(data.messageId)
                     .then(message => {
-                        // Si le message existe, on le garde dans messagesToSave pour écouter les réactions
+                        // Si le message existe, on le garde
                         messagesToSave.push({ messageId: message.id, channelId: channel.id });
-                        logText(`Message already exists: ID ${message.id} in channel: ${channel.id}`);
+                        logText(`Message exists: ID ${message.id} in channel: ${channel.id}`);
                     })
                     .catch(() => {
-                        // Si le message n'existe pas, on le renvoie
+                        // Si le message n'existe pas, on le recrée
+                        logText(`Message with ID ${data.messageId} not found in channel ${channel.id}. Republishing...`);
                         const embed = getEmbedForChannel(data.channelId);
                         if (embed) {
-                            channel.send({ embeds: [embed] }).then(newMessage => {
-                                logText(`Message republished: ID ${newMessage.id} in channel: ${channel.id}`);
-                                messagesToSave.push({ messageId: newMessage.id, channelId: channel.id });
-                            }).catch(err => logText(`Failed to republish message: ${err.message}`));
+                            channel.send({ embeds: [embed] })
+                                .then(newMessage => {
+                                    logText(`Message republished: ID ${newMessage.id} in channel: ${channel.id}`);
+                                    messagesToSave.push({ messageId: newMessage.id, channelId: channel.id });
+                                })
+                                .catch(err => logText(`Failed to republish message in channel ${channel.id}: ${err.message}`));
+                        } else {
+                            logText(`No embed available for channel ID: ${data.channelId}. Skipping.`);
                         }
                     });
+            } else {
+                logText(`Channel with ID ${data.channelId} not found. Skipping.`);
+            }
+        });
+    } else {
+        logText(`Data file not found at ${dataPath}. Creating default messages...`);
+        
+        const defaultChannels = [ChannelID_Welcome, ChannelID_Rules, ChannelID_Roles, ChannelID_Controle];
+        defaultChannels.forEach(channelId => {
+            const channel = Client.channels.cache.get(channelId);
+            if (channel) {
+                logText(`Creating message for channel ID: ${channelId}`);
+                const embed = getEmbedForChannel(channelId);
+                if (embed) {
+                    channel.send({ embeds: [embed] })
+                        .then(newMessage => {
+                            logText(`Default message created: ID ${newMessage.id} in channel: ${channel.id}`);
+                            messagesToSave.push({ messageId: newMessage.id, channelId: channel.id });
+                        })
+                        .catch(err => logText(`Failed to create default message in channel ${channel.id}: ${err.message}`));
+                } else {
+                    logText(`No embed available for channel ID: ${channelId}. Skipping.`);
+                }
+            } else {
+                logText(`Channel with ID ${channelId} not found. Skipping.`);
             }
         });
     }
