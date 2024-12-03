@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { logText } = require("./functs_utils.js");
 const Discord = require("discord.js");
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const emailvalidator = require("email-validator");
 const { exit } = require("process");
@@ -403,6 +403,7 @@ Client.on("messageCreate", message => {
                             .catch(console.error)
                             , 5000)
                     } else {
+                        logText("respo_role");
                         // Récupérer l'emoji du rôle en évitant une erreur de lecture
                         var emoji = String.fromCodePoint(respo_role.name.codePointAt(0));
                         // Trouver le rôle enfant lié à cet emoji
@@ -422,13 +423,16 @@ Client.on("messageCreate", message => {
                                 .catch(console.error)
                                 , 5000)
                         } else {
+                            logText("member_role");
+
+
                             // Créer le menu de sélection
-                            var row = new Discord.MessageActionRow()
+                            const row = new ActionRowBuilder()
                                 .addComponents(
-                                    new Discord.MessageSelectMenu()
+                                    new StringSelectMenuBuilder()
                                         .setCustomId('select')
                                         .setPlaceholder('Liste des rôles')
-                                        .addOptions(
+                                        .addOptions([
                                             {
                                                 label: member_role.name,
                                                 value: member_role.id,
@@ -437,21 +441,27 @@ Client.on("messageCreate", message => {
                                                 label: respo_role.name,
                                                 value: respo_role.id,
                                             },
-                                        ),
+                                        ]),
                                 );
-                            message.reply({ content: ('Sélectionner le rôle que vous souhaitez associer à **<@' + memberID + '>** dans le menu ci-dessous :'), components: [row] })
+
+                            message.reply({
+                                content: `Sélectionnez le rôle que vous souhaitez associer à **<${memberID}>** dans le menu ci-dessous :`,
+                                components: [row],
+                            })
                                 .then(msg => {
-                                    setTimeout(() => msg.delete()
-                                        .then()
-                                        .catch(console.error)
-                                        , 10000)
+                                    setTimeout(() => {
+                                        msg.delete().catch(console.error);
+                                    }, 10000);
                                 })
                                 .catch(console.error);
-                            setTimeout(() => message.delete()
-                                .then()
-                                .catch(console.error)
-                                , 10000)
+
+                            setTimeout(() => {
+                                message.delete().catch(console.error);
+                            }, 10000);
+
                             logText("Role selection for user " + message.author.id + " with ID " + message.content);
+
+
                         }
                     }
                 } else {
@@ -542,7 +552,7 @@ Client.on("interactionCreate", interaction => {
 
     if (interaction.channel.id === ChannelID_Roles) {
 
-        if (interaction.isSelectMenu()) {
+        if (interaction.isStringSelectMenu()) {
             if (interaction.customId === "select") {
                 try {
                     var role = interaction.guild.roles.cache.find(role => role.id === interaction.values[0]);
