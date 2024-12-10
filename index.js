@@ -546,26 +546,38 @@ Client.on("messageReactionAdd", (reaction, user) => {
     }
 });
 
-Client.on("interactionCreate", interaction => {
+Client.on("interactionCreate", async interaction => {
     // Check if it's the roles channel
     logText("Bot interaction received from " + interaction.user.id);
 
     if (interaction.channel.id === ChannelID_Roles) {
-
         if (interaction.isStringSelectMenu()) {
             if (interaction.customId === "select") {
                 try {
-                    var role = interaction.guild.roles.cache.find(role => role.id === interaction.values[0]);
-                    interaction.member.roles.add(role);
-                    interaction.update({ content: ('✅ Le rôle ' + role.name + ' a été ajouté !') });
-                    logText("Role " + role.name + " added to user " + interaction.member.id);
+                    // Récupérer l'ID de l'utilisateur ciblé
+                    const targetUserId = interaction.message.content.match(/<@(\d+)>/)[1];
+                    const targetMember = await interaction.guild.members.fetch(targetUserId);
+
+                    // Trouver le rôle sélectionné
+                    const role = interaction.guild.roles.cache.find(role => role.id === interaction.values[0]);
+
+                    // Ajouter le rôle à l'utilisateur ciblé
+                    if (role && targetMember) {
+                        await targetMember.roles.add(role);
+                        await interaction.update({ content: `✅ Le rôle **${role.name}** a été attribué à **<@${targetUserId}>** !`, components: [] });
+                        logText(`Role ${role.name} added to user ${targetUserId} by ${interaction.user.id}`);
+                    } else {
+                        throw new Error("Rôle ou utilisateur introuvable.");
+                    }
                 } catch (error) {
                     logText("Error adding role: " + error.message);
+                    await interaction.reply({ content: "❌ Une erreur s'est produite lors de l'ajout du rôle. Veuillez réessayer.", ephemeral: true });
                 }
             }
         }
     }
 });
+
 
 Client.on("error", (e) => {
     logText("Discord client error: " + e.message);
